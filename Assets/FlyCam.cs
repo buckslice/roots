@@ -59,18 +59,24 @@ public class FlyCam : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        CameraControl();
+    }
+
+    void CameraControl() {
+        int lookMouseButton = 2;
+
         // Hide and lock cursor when right mouse button pressed
-        if (Input.GetMouseButtonDown(1)) {
+        if (Input.GetMouseButtonDown(lookMouseButton)) {
             Cursor.lockState = CursorLockMode.Locked;
         }
 
         // Unlock and show cursor when right mouse button released
-        if (Input.GetMouseButtonUp(1)) {
+        if (Input.GetMouseButtonUp(lookMouseButton)) {
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
 
-        if (Input.GetMouseButton(1)) {
+        if (Input.GetMouseButton(lookMouseButton)) {
             targCamState.yaw += Input.GetAxis("Mouse X") * sensitivity;
             targCamState.pitch += Input.GetAxis("Mouse Y") * sensitivity;
         }
@@ -83,10 +89,10 @@ public class FlyCam : MonoBehaviour {
         Vector3 move = forward * Input.GetAxisRaw("Vertical") + transform.right * Input.GetAxisRaw("Horizontal");
 
         moveSpeed += Input.mouseScrollDelta.y;
-        if(moveSpeed < 1) {
+        if (moveSpeed < 1) {
             moveSpeed = 1;
         }
-        if(moveSpeed > 100) {
+        if (moveSpeed > 100) {
             moveSpeed = 100;
         }
 
@@ -97,10 +103,10 @@ public class FlyCam : MonoBehaviour {
         move = move.normalized * speed;
 
         float upDir = 0.0f;
-        if (Input.GetKey(KeyCode.Space)) {
+        if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Period)) {
             upDir += 1.0f;
         }
-        if (Input.GetKey(KeyCode.LeftShift)) {
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.Semicolon)) {
             upDir -= 1.0f;
         }
         move += upDir * Vector3.up * speed;
@@ -114,6 +120,6 @@ public class FlyCam : MonoBehaviour {
         currCamState.LerpTowards(targCamState, positionLerpPct, rotationLerpPct);
 
         currCamState.UpdateTransform(transform);
-
     }
+
 }

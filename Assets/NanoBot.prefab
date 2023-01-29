@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 7778602433260051476}
   - component: {fileID: 7778602433260051477}
   - component: {fileID: 7778602433260051474}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Model
-  m_TagString: Untagged
+  m_TagString: NanoBot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7778602433260051475}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -109,9 +109,10 @@ GameObject:
   - component: {fileID: 7778602433958087568}
   - component: {fileID: 2462229269938516210}
   - component: {fileID: -4069983379466592401}
-  m_Layer: 0
+  - component: {fileID: -2739154832255366665}
+  m_Layer: 6
   m_Name: NanoBot
-  m_TagString: Untagged
+  m_TagString: NanoBot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -186,3 +187,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ac72873c6bfe514ab605602b306f86a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!195 &-2739154832255366665
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7778602433958087582}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 360
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
