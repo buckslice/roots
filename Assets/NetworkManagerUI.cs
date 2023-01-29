@@ -32,10 +32,11 @@ public class NetworkManagerUI : MonoBehaviour {
         if (ipField.text.Length > 0) {
             var splits = ipField.text.Split(":");
             var address = splits[0];
-            var port = splits.Length > 1 ? int.Parse(splits[1]) : 7777;
+            var port = splits.Length > 1 ? int.Parse(splits[1]) : 42420;
             transport.SetConnectionData(address, (ushort)port);
+            Debug.Log($"setting connection data, address: {address}, port: {port}");
         } else {
-            transport.SetConnectionData("127.0.0.1", 7777);
+            transport.SetConnectionData("127.0.0.1", 42420);
         }
         NetworkManager.Singleton.StartClient();
     }

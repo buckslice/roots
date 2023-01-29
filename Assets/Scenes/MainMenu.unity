@@ -435,7 +435,7 @@ MonoBehaviour:
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
     Address: 127.0.0.1
-    Port: 7777
+    Port: 42420
     ServerListenAddress: 
   DebugSimulator:
     PacketDelayMS: 0
@@ -492,7 +492,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f517013bfa093874788274e3f7894b7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPrefab: {fileID: 7778602433958087582, guid: 92a9ea96cd3311c448db0f2c324197d7, type: 3}
 --- !u!1 &314395878
 GameObject:
   m_ObjectHideFlags: 0
