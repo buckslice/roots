@@ -5,10 +5,6 @@ using UnityEngine.AI;
 using Unity.Netcode;
 
 public class UnitControl : MonoBehaviour {
-    // Start is called before the first frame update
-    void Start() {
-
-    }
 
     List<NanoBot> selected = new List<NanoBot>();
 
@@ -21,22 +17,30 @@ public class UnitControl : MonoBehaviour {
         if (Input.GetMouseButtonDown(0)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hitInfo, 1000, 1 << Layers.Unit)) {
-                if (hitInfo.collider.CompareTag(Tags.NanoBot)) {
-                    selected.Add(hitInfo.collider.GetComponentInParent<NanoBot>());
-                    Debug.Log("wat");
+                if (hitInfo.collider.CompareTag(Tags.NanoBot)) { // did we hit a bot?
+                    var bot = hitInfo.collider.GetComponentInParent<NanoBot>();
+                    if (bot.OwnerClientId == id) { // player owns this bot?
+                        bot.SetSelected(true);
+                        selected.Add(bot);
+                    }
                 }
+            } else { // clear selection if you click off
+                foreach (var bot in selected) {
+                    bot.SetSelected(false);
+                }
+                selected.Clear();
             }
-        }
+        }        
 
         // right click tell them to move
         if (Input.GetMouseButtonDown(1)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hitInfo, 1000, 1 << Layers.Scalp)) {
-                Debug.Log("hello?);");
                 foreach (var bot in selected) {
-                    Debug.Log(bot.OwnerClientId + " " + id);
                     if (bot.OwnerClientId == id) {
-                        bot.agent.destination = hitInfo.point;
+                        var pos = hitInfo.point;
+                        //Debug.Log($"Request Unit moves here: {pos}");
+                        bot.MoveUnit_ServerRpc(pos);
                     }
                 }
             }

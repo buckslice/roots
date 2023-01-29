@@ -12,7 +12,11 @@ public class FlyCam : MonoBehaviour {
         public float z;
 
         public void SetFromTransform(Transform t) {
-            pitch = t.eulerAngles.x;
+            if (t.eulerAngles.x > 90) {
+                pitch = 360.0f - t.eulerAngles.x;
+            } else {
+                pitch = -t.eulerAngles.x;
+            }
             yaw = t.eulerAngles.y;
             roll = t.eulerAngles.z;
             x = t.position.x;
