@@ -28,9 +28,4 @@ public class NanoBot : Unit {
         selectionLight.SetActive(selected);
     }
 
-    // Update is called once per frame
-    void Update() {
-        // find random hair follicle
-        // protec
-    }
 }

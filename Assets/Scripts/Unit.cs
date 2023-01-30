@@ -6,7 +6,11 @@ using Unity.Netcode;
 
 public class Unit : NetworkBehaviour {
 
-    NavMeshAgent agent;
+    public NavMeshAgent agent;
+
+    public float health;
+
+    public string enemyTag;
 
     // Start is called before the first frame update
     protected virtual void Awake() {
@@ -32,7 +36,14 @@ public class Unit : NetworkBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
+    protected virtual void Update() {
+        if (Input.GetKeyDown(KeyCode.V)) {
+            findEnemy();
+        }
+    }
 
+    void findEnemy() {
+        var colliders = Physics.OverlapSphere(transform.position, 10, 1 << Layers.Unit);
+        Debug.Log(colliders.Length);
     }
 }
