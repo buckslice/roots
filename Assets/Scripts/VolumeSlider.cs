@@ -17,11 +17,12 @@ public class VolumeSlider : MonoBehaviour {
         }
     }
 
-
     public void SetLevel(float sliderValue) {
-        if (sliderValue < 0.01f) {
-            sliderValue = 0.01f;
+        float volume = 0.0f;
+        if (sliderValue > 0.001f) {
+            volume = Mathf.Log10(sliderValue) * 20;
         }
-        mixer.SetFloat("MasterVolume", Mathf.Log10(sliderValue) * 20);
+        mixer.SetFloat("MasterVolume", volume);
     }
+
 }

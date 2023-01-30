@@ -4,23 +4,17 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.Netcode;
 
-public class NanoBot : NetworkBehaviour {
+public class NanoBot : Unit {
 
-    NavMeshAgent agent;
     GameObject selectionLight;
     MeshRenderer mr;
 
     // Start is called before the first frame update
-    void Awake() {
-        agent = GetComponent<NavMeshAgent>();
+    protected override void Awake() {
+        base.Awake();
         mr = GetComponentInChildren<MeshRenderer>();
         selectionLight = transform.Find("SelectionLight").gameObject;
         selectionLight.SetActive(false);
-    }
-    void Start() {
-        if (!IsServer) { // only server controls this
-            Destroy(agent);
-        }
     }
 
     [ClientRpc]
@@ -32,18 +26,6 @@ public class NanoBot : NetworkBehaviour {
 
     public void SetSelected(bool selected) {
         selectionLight.SetActive(selected);
-    }
-
-    [ServerRpc]
-    public void MoveUnit_ServerRpc(Vector3 destination) {
-        Debug.Log($"Moving Unit here {destination}");
-        agent.destination = destination;
-
-
-        //Vector3 look = destination - transform.position;
-        //look.y = 0;
-        //look.Normalize();
-        //transform.LookAt(look);
     }
 
     // Update is called once per frame
