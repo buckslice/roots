@@ -6,7 +6,9 @@ using Unity.Netcode;
 
 public class GameSpawner : NetworkBehaviour {
 
-    public GameObject spawnPrefab;
+    public GameObject nanoBotPrefab;
+    public GameObject bugPrefab;
+    public GameObject babyBugPrefab;
 
     // Start is called before the first frame update
     void Start() {
@@ -14,27 +16,35 @@ public class GameSpawner : NetworkBehaviour {
             return;
         }
 
-        StartCoroutine(SpawnBotsForever());
+        for (int i = 0; i < 50; i++) {
+            SpawnBug();
+        }
+
+        SpawnBotForEachPlayer();
     }
 
-    IEnumerator SpawnBotsForever() {
-        while (true) {
-            foreach (var client in NetworkManager.Singleton.ConnectedClients.Values) {
-                Vector3 pos = Vector3.up * 100 + Random.insideUnitSphere * 10;
-                if (Physics.Raycast(pos, Vector3.down, out RaycastHit info, 1000)) {
-                    pos = info.point;
-                }
-                var go = Instantiate(spawnPrefab, pos, Quaternion.identity);
-                var bot = go.GetComponent<NanoBot>();
-                var color = BuckNet.clientColors[client.ClientId];
-                go.transform.position = pos;
-                go.GetComponent<NetworkObject>().SpawnWithOwnership(client.ClientId);
-                bot.SetColor_ClientRpc(color);
-            }
+    void SpawnBug() {
+        var prefab = Random.value < 0.5f ? bugPrefab : babyBugPrefab;
+        var bug = SpawnPrefab(prefab, 40.0f);
+        bug.GetComponent<NetworkObject>().Spawn();
+    }
 
-            yield return new WaitForSeconds(5.0f);
+    void SpawnBotForEachPlayer() {
+        foreach (var client in NetworkManager.Singleton.ConnectedClients.Values) {
+            var go = SpawnPrefab(nanoBotPrefab, 10.0f);
+            var bot = go.GetComponent<NanoBot>();
+            var color = BuckNet.clientColors[client.ClientId];
+            bot.SetColor_ClientRpc(color);
+            go.GetComponent<NetworkObject>().SpawnWithOwnership(client.ClientId);
         }
     }
 
+    public GameObject SpawnPrefab(GameObject spawnPrefab, float radius) {
+        Vector3 pos = Vector3.up * 100 + Random.insideUnitSphere * radius;
+        if (Physics.Raycast(pos, Vector3.down, out RaycastHit info, 1000)) {
+            pos = info.point;
+        }
+        return Instantiate(spawnPrefab, pos, Quaternion.identity);
+    }
+
 }
-;

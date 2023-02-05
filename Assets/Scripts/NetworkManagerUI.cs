@@ -31,7 +31,6 @@ public class NetworkManagerUI : MonoBehaviour {
             startButton.gameObject.SetActive(false);
             ipField.gameObject.SetActive(false);
             background.gameObject.SetActive(false);
-
         }
     }
 

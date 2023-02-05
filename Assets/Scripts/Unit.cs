@@ -6,18 +6,21 @@ using Unity.Netcode;
 
 public class Unit : NetworkBehaviour {
 
-    public NavMeshAgent agent;
+    [HideInInspector] public NavMeshAgent agent;
 
     public float health;
 
     public string enemyTag;
+
+    public static Collider[] colliders = new Collider[32];
+    public static RaycastHit[] hits = new RaycastHit[32];
 
     // Start is called before the first frame update
     protected virtual void Awake() {
         agent = GetComponent<NavMeshAgent>();
     }
 
-    void Start() {
+    protected virtual void Start() {
         if (!IsServer) { // only server controls this
             Destroy(agent);
         }
@@ -38,11 +41,11 @@ public class Unit : NetworkBehaviour {
     // Update is called once per frame
     protected virtual void Update() {
         if (Input.GetKeyDown(KeyCode.V)) {
-            findEnemy();
+            FindEnemy();
         }
     }
 
-    void findEnemy() {
+    void FindEnemy() {
         var colliders = Physics.OverlapSphere(transform.position, 10, 1 << Layers.Unit);
         Debug.Log(colliders.Length);
     }
