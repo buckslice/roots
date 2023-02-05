@@ -13,6 +13,10 @@ public class BuckNet : MonoBehaviour {
 
     public static Dictionary<ulong, Color> clientColors = new Dictionary<ulong, Color>();
 
+    void Start() {
+        Application.targetFrameRate = 60;
+    }
+
     void OnEnable() {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;

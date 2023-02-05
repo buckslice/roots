@@ -26,11 +26,22 @@ public class NetworkManagerUI : MonoBehaviour {
 
     void SceneChanged(Scene arg0, Scene arg1) {
         if (arg1.name != "MainMenu") {
-            hostButton.gameObject.SetActive(false);
-            joinButton.gameObject.SetActive(false);
-            startButton.gameObject.SetActive(false);
-            ipField.gameObject.SetActive(false);
-            background.gameObject.SetActive(false);
+            // these were nulling out?? not sure why since this whole thing is not in destroy
+            if (hostButton != null) {
+                hostButton.gameObject.SetActive(false);
+            }
+            if (joinButton != null) {
+                joinButton.gameObject.SetActive(false);
+            }
+            if (startButton != null) {
+                startButton.gameObject.SetActive(false);
+            }
+            if (ipField != null) {
+                ipField.gameObject.SetActive(false);
+            }
+            if (background != null) {
+                background.gameObject.SetActive(false);
+            }
         }
     }
 

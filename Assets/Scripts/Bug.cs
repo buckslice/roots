@@ -14,9 +14,9 @@ public class Bug : Unit {
         CHASE,
     }
 
-    public State state;
+    State state;
 
-    Coroutine currentRoutine = null;
+    Coroutine currentRoutine = null; // tracks the currently active routine, incase needs to be interrupted
 
     public float wanderSpeed = 2.5f;
     public float wanderAnimPlayrate = 1.0f;
@@ -40,20 +40,13 @@ public class Bug : Unit {
 
     }
 
-
-    float idleTimer = 0.0f;
     Vector3 targetUp = Vector3.up;
 
     // Update is called once per frame
     protected override void Update() {
         base.Update();
 
-        targetUp = Vector3.Lerp(targetUp, groundNormal, Time.deltaTime);
-        Vector3 right = Vector3.Cross(transform.forward, targetUp);
-        Vector3 trueForward = Vector3.Cross(targetUp, right).normalized;
-        //Debug.DrawLine(transform.position, transform.position + trueForward * 5.0f, Color.white);
-        //Debug.DrawLine(transform.position, transform.position + groundNormal * 5.0f, Color.red);
-        anim.transform.localRotation = Quaternion.Inverse(transform.rotation) * Quaternion.LookRotation(trueForward, targetUp);
+        RotateToGround();
 
         if (!IsServer) { // only server after this
             return;
@@ -66,18 +59,17 @@ public class Bug : Unit {
 
         // check if recently attacked, put in chase mode if so
 
-        //if (state == State.IDLE) {
-        //    idleTimer -= Time.deltaTime;
-        //    if (idleTimer < 0.0f) {
-        //        state = State.WANDER;
-        //        //Vector3 random = 
-        //    }
-        //} else if (state == State.WANDER) {
-
-        //} else if (state == State.CHASE) {
-
-        //}
     }
+
+    void RotateToGround() {
+        targetUp = Vector3.Lerp(targetUp, groundNormal, Time.deltaTime);
+        Vector3 right = Vector3.Cross(transform.forward, targetUp);
+        Vector3 trueForward = Vector3.Cross(targetUp, right).normalized;
+        //Debug.DrawLine(transform.position, transform.position + trueForward * 5.0f, Color.white);
+        //Debug.DrawLine(transform.position, transform.position + groundNormal * 5.0f, Color.red);
+        anim.transform.localRotation = Quaternion.Inverse(transform.rotation) * Quaternion.LookRotation(trueForward, targetUp);
+    }
+
 
     Vector3 groundNormal = Vector3.up;
 
@@ -94,8 +86,8 @@ public class Bug : Unit {
     IEnumerator WanderRoutine() {
         while (true) {
             // wait idly
-            Debug.Log("Idle");
-            yield return new WaitForSeconds(Random.Range(2.0f, 5.0f));
+            //Debug.Log("Idle");
+            yield return new WaitForSeconds(Random.Range(1.0f, 2.0f));
 
             // find random place to walk to
             Vector3 pos = transform.position;
@@ -105,17 +97,81 @@ public class Bug : Unit {
             if (count > 0) {
                 agent.destination = hits[0].point;
             }
-            Debug.Log("Traveling");
+            //Debug.Log("Wandering");
 
+            float lookForHairTimer = 0.0f;
             // wait until we get there
             while (true) {
                 if ((transform.position - agent.destination).magnitude < 1.0f) {
                     break;
                 }
+
+                lookForHairTimer -= Time.deltaTime;
+                if (lookForHairTimer < 0.0f) {
+                    var hair = LookForHair();
+                    if (hair != null) {
+                        currentRoutine = StartCoroutine(EatHairRoutine(hair));
+                        yield break; // exit this coroutine
+                    }
+                    lookForHairTimer = 1.0f;
+                }
+
                 yield return null;
             }
-            Debug.Log("Arrived");
+            //Debug.Log("Arrived");
         }
     }
+
+    Collider LookForHair() {
+        int count = Physics.OverlapSphereNonAlloc(transform.position, 5.0f, colliders, 1 << Layers.Hair);
+        if (count > 0) {
+            float closestDist = float.MaxValue;
+            int closestIndex = 0;
+            // find closest hair
+            for (int i = 0; i < count; i++) {
+                var pos = colliders[i].transform.position;
+                float dist = (transform.position - pos).sqrMagnitude;
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestIndex = i;
+                }
+            }
+            return colliders[closestIndex];
+        }
+        return null;
+    }
+
+    IEnumerator EatHairRoutine(Collider hair) {
+        agent.destination = hair.transform.position;
+        while (hair.enabled) { // move to hair
+            if ((transform.position - agent.destination).magnitude <= 1.5f) {
+                break;
+            }
+            yield return null;
+        }
+
+        if (hair.enabled) { 
+
+            anim.SetTrigger("Smash Attack");
+            yield return new WaitForSeconds(1.0f);
+            anim.SetTrigger("Stab Attack");
+            yield return new WaitForSeconds(1.0f);
+
+            // destroy hair
+            if (hair.enabled) {
+                HairManager.instance.KillHair(hair.gameObject);
+                // could spawn some baby bugs here
+                // or become bigger / stronger
+            }
+        }
+
+        currentRoutine = StartCoroutine(WanderRoutine());
+    }
+
+    // chase routine ideas
+    // anim change is happening above right?
+    // chase target updating destination
+    // if close enough attack on cooldown
+    // if target dies or something revert to idle / wander
 
 }
