@@ -19,8 +19,9 @@ public class GameSpawner : NetworkBehaviour {
         for (int i = 0; i < 10; i++) {
             SpawnBug();
         }
-
-        SpawnBotForEachPlayer();
+        for (int i = 0; i < 3; i++) {
+            SpawnBotForEachPlayer();
+        }
     }
 
     void SpawnBug() {

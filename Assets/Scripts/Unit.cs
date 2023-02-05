@@ -23,19 +23,19 @@ public class Unit : NetworkBehaviour {
     }
 
     protected virtual void Start() {
+        anim = GetComponentInChildren<Animator>();
         if (!IsServer) { // only server controls this
             Destroy(agent);
             return;
         }
-        anim = GetComponentInChildren<Animator>();
     }
 
     [ServerRpc]
     public void MoveUnit_ServerRpc(Vector3 destination) {
-        Debug.Log($"Moving Unit here {destination}");
+        //Debug.Log($"Moving Unit here {destination}");
         agent.destination = destination;
         agent.isStopped = false;
-        (this as NanoBot).target = null;
+        (this as NanoBot).targetBug = null;
 
     }
 

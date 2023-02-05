@@ -8,6 +8,8 @@ public class UnitControl : MonoBehaviour {
 
     List<NanoBot> selected = new List<NanoBot>();
 
+    RaycastHit[] hitInfo = new RaycastHit[32];
+
     // Update is called once per frame
     void Update() {
 
@@ -15,17 +17,31 @@ public class UnitControl : MonoBehaviour {
 
         // left click select nanobot
         if (Input.GetMouseButtonDown(0)) {
+            bool shift = Input.GetKey(KeyCode.LeftShift);
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.SphereCast(ray, 1.0f, out var hitInfo, 1000, 1 << Layers.Unit)) {
-                if (hitInfo.collider.CompareTag(Tags.NanoBot)) { // did we hit a bot?
-                    var bot = hitInfo.collider.GetComponentInParent<NanoBot>();
+            float radius = shift ? 2.0f : 0.1f;
+            int count = Physics.SphereCastNonAlloc(ray.origin, radius, ray.direction, hitInfo, 1000, 1 << Layers.Unit);
+            bool selectedAny = false;
+            for (int i = 0; i < count; i++) {
+                var hit = hitInfo[i];
+                if (hit.collider.CompareTag(Tags.NanoBot)) {
+                    var bot = hit.collider.GetComponentInParent<NanoBot>();
                     if (bot.OwnerClientId == id) { // player owns this bot?
+                        if (!shift) {
+                            selected.Clear();
+                        }
+                        selectedAny = true;
                         selected.Add(bot);
+                        if (!shift) {
+                            break;
+                        }
                     }
                 }
-            } else { // clear selection if you click off
+            }
+            if (!selectedAny) { // clear selection if you click off
                 selected.Clear();
             }
+
         }
 
         // right click tell them to move
@@ -40,7 +56,7 @@ public class UnitControl : MonoBehaviour {
                     didTargetABug = true;
                     var bug = hitInfo.collider.GetComponent<Bug>();
                     foreach (var bot in selected) {
-                        bot.target = bug;
+                        bot.targetBug = bug;
                     }
 
                 }
@@ -71,9 +87,11 @@ public class UnitControl : MonoBehaviour {
             Transform t = selected[i].transform;
             DrawColoredCircle(t, 1.0f, Color.white);
 
-            if (selected[i].target != null) {
-                var bug = selected[i].target;
-                DrawColoredCircle(bug.transform, bug.agent.radius * 1.5f * (0.8f + Mathf.Abs(Mathf.Sin(blinkTimer*4.0f)) * 0.4f), Color.red);
+            if (selected[i].targetBug != null) {
+                var bug = selected[i].targetBug;
+                if (!bug.dying) {
+                    DrawColoredCircle(bug.transform, bug.agent.radius * 1.5f * (0.8f + Mathf.Abs(Mathf.Sin(blinkTimer * 4.0f)) * 0.4f), Color.red);
+                }
             }
         }
 

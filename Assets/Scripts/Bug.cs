@@ -42,6 +42,10 @@ public class Bug : Unit {
     protected override void Update() {
         base.Update();
 
+        if (dying) {
+            return;
+        }
+
         RotateToGround();
 
         if (!IsServer) { // only server after this
@@ -55,6 +59,32 @@ public class Bug : Unit {
 
         // check if recently attacked, put in chase mode if so
 
+        if (health <= 0.0f) {
+            if (currentRoutine != null) {
+                StopCoroutine(currentRoutine);
+            }
+            if (!dying) {
+                dying = true;
+                StartCoroutine(DeathRoutine());
+            }
+        }
+
+    }
+
+    public bool dying = false;
+    IEnumerator DeathRoutine() {
+        anim.speed = 1.0f;
+        anim.SetTrigger("Die");
+        Destroy(agent);
+        float t = 0.0f;
+        Vector3 startPos = transform.position;
+        yield return new WaitForSeconds(3.0f);
+        while (t < 1.0f) {
+            t += Time.deltaTime * 0.05f;
+            transform.position = startPos - Vector3.up * 2.0f * t;
+            yield return null;
+        }
+        NetworkObject.Despawn();
     }
 
     void RotateToGround() {
@@ -65,7 +95,6 @@ public class Bug : Unit {
         //Debug.DrawLine(transform.position, transform.position + groundNormal * 5.0f, Color.red);
         anim.transform.localRotation = Quaternion.Inverse(transform.rotation) * Quaternion.LookRotation(trueForward, targetUp);
     }
-
 
     Vector3 groundNormal = Vector3.up;
 

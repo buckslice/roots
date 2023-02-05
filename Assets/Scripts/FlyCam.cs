@@ -107,13 +107,14 @@ public class FlyCam : MonoBehaviour {
         move = move.normalized * speed;
 
         float upDir = 0.0f;
-        if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Period)) {
+        if (Input.GetKey(KeyCode.E)) {
             upDir += 1.0f;
         }
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.Semicolon)) {
+        if (Input.GetKey(KeyCode.Q)) {
             upDir -= 1.0f;
         }
         move += upDir * Vector3.up * speed;
+        //move += upDir * transform.up * speed;
 
         targCamState.Translate(move * Time.deltaTime);
 
