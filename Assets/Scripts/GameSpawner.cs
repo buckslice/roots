@@ -41,7 +41,7 @@ public class GameSpawner : NetworkBehaviour {
 
     public GameObject SpawnPrefab(GameObject spawnPrefab, float radius) {
         Vector3 pos = Vector3.up * 100 + Random.insideUnitSphere * radius;
-        if (Physics.Raycast(pos, Vector3.down, out RaycastHit info, 1000)) {
+        if (Physics.Raycast(pos, Vector3.down, out RaycastHit info, 1000, 1 << Layers.Scalp)) {
             pos = info.point;
         }
         return Instantiate(spawnPrefab, pos, Quaternion.identity);

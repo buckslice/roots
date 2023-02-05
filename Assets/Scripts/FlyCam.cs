@@ -87,8 +87,8 @@ public class FlyCam : MonoBehaviour {
         targCamState.pitch = Mathf.Clamp(targCamState.pitch, -89, 89);
 
         Vector3 forward = transform.forward;
-        forward.y = 0.0f;
-        forward.Normalize();
+        //forward.y = 0.0f;
+        //forward.Normalize();
 
         Vector3 move = forward * Input.GetAxisRaw("Vertical") + transform.right * Input.GetAxisRaw("Horizontal");
 
