@@ -8,12 +8,14 @@ public class Unit : NetworkBehaviour {
 
     [HideInInspector] public NavMeshAgent agent;
 
-    public float health;
+    public float health; // network variable?
 
     public string enemyTag;
 
     public static Collider[] colliders = new Collider[32];
     public static RaycastHit[] hits = new RaycastHit[32];
+
+    protected Animator anim;
 
     // Start is called before the first frame update
     protected virtual void Awake() {
@@ -23,26 +25,27 @@ public class Unit : NetworkBehaviour {
     protected virtual void Start() {
         if (!IsServer) { // only server controls this
             Destroy(agent);
+            return;
         }
+        anim = GetComponentInChildren<Animator>();
     }
 
     [ServerRpc]
     public void MoveUnit_ServerRpc(Vector3 destination) {
         Debug.Log($"Moving Unit here {destination}");
         agent.destination = destination;
+        agent.isStopped = false;
+        (this as NanoBot).target = null;
 
-
-        //Vector3 look = destination - transform.position;
-        //look.y = 0;
-        //look.Normalize();
-        //transform.LookAt(look);
     }
 
     // Update is called once per frame
     protected virtual void Update() {
-        if (Input.GetKeyDown(KeyCode.V)) {
-            FindEnemy();
+
+        if (!IsServer) {
+            return;
         }
+
     }
 
     void FindEnemy() {

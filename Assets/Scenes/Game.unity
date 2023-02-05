@@ -1291,6 +1291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3bb647cb81377a44a37953cef42c8fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lineMat: {fileID: 0}
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2232,6 +2233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3bb647cb81377a44a37953cef42c8fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lineMat: {fileID: 2100000, guid: 566cf217dbe012742acd235d04d444db, type: 2}
 --- !u!81 &2122419056
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2342,7 +2344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d5c210e53bd4c54e8c05c70f0173f72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nanoBotPrefab: {fileID: 7778602433958087582, guid: 92a9ea96cd3311c448db0f2c324197d7, type: 3}
+  nanoBotPrefab: {fileID: 7778602433958087582, guid: 0dfb121a61fe0ab4b93b43b28577f680, type: 3}
   bugPrefab: {fileID: 329329235263389976, guid: 04920f25b4a40f342a3b59be85687c01, type: 3}
   babyBugPrefab: {fileID: 329329235263389976, guid: 6b8aed4d9ab097e40bc3520547ac0dab, type: 3}
 --- !u!4 &2142347248

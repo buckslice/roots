@@ -6,8 +6,6 @@ using Unity.Netcode;
 
 public class Bug : Unit {
 
-    Animator anim;
-
     public enum State {
         IDLE,
         WANDER,
@@ -26,8 +24,6 @@ public class Bug : Unit {
     // Start is called before the first frame update
     protected override void Start() {
         base.Start();
-
-        anim = GetComponentInChildren<Animator>();
 
         StartCoroutine(RaycastToGround());
 
@@ -102,7 +98,7 @@ public class Bug : Unit {
             float lookForHairTimer = 0.0f;
             // wait until we get there
             while (true) {
-                if ((transform.position - agent.destination).magnitude < 1.0f) {
+                if ((transform.position - agent.destination).magnitude <= agent.stoppingDistance) {
                     break;
                 }
 
@@ -144,13 +140,27 @@ public class Bug : Unit {
     IEnumerator EatHairRoutine(Collider hair) {
         agent.destination = hair.transform.position;
         while (hair.enabled) { // move to hair
-            if ((transform.position - agent.destination).magnitude <= 1.5f) {
+            if ((transform.position - agent.destination).magnitude <= agent.stoppingDistance) {
                 break;
             }
             yield return null;
         }
 
-        if (hair.enabled) { 
+        // look at hair
+        Vector3 target = hair.transform.position;
+        target.y = transform.position.y;
+        transform.LookAt(target);
+
+        //while (true) {
+        //    target.y = transform.position.y;
+        //    transform.LookAt(Vector3.Lerp(transform.position + transform.forward, target, Time.deltaTime));
+        //    if (Vector3.Dot(transform.forward, target - transform.position) > 0.9f) {
+        //        break;
+        //    }
+        //    yield return null;
+        //}
+
+        if (hair.enabled) {
 
             anim.SetTrigger("Smash Attack");
             yield return new WaitForSeconds(1.0f);

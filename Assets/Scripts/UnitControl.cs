@@ -16,26 +16,38 @@ public class UnitControl : MonoBehaviour {
         // left click select nanobot
         if (Input.GetMouseButtonDown(0)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hitInfo, 1000, 1 << Layers.Unit)) {
+            if (Physics.SphereCast(ray, 1.0f, out var hitInfo, 1000, 1 << Layers.Unit)) {
                 if (hitInfo.collider.CompareTag(Tags.NanoBot)) { // did we hit a bot?
                     var bot = hitInfo.collider.GetComponentInParent<NanoBot>();
                     if (bot.OwnerClientId == id) { // player owns this bot?
-                        bot.SetSelected(true);
                         selected.Add(bot);
                     }
                 }
             } else { // clear selection if you click off
-                foreach (var bot in selected) {
-                    bot.SetSelected(false);
-                }
                 selected.Clear();
             }
-        }        
+        }
 
         // right click tell them to move
         if (Input.GetMouseButtonDown(1)) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hitInfo, 1000, 1 << Layers.Scalp)) {
+
+            // check if should attack bug
+            bool didTargetABug = false;
+            if (Physics.SphereCast(ray, 1.0f, out var hitInfo, 1000, 1 << Layers.Unit)) {
+                if (hitInfo.collider.CompareTag(Tags.Bug)) { // did we hit a bug?
+                    // tell all selected bots to kill
+                    didTargetABug = true;
+                    var bug = hitInfo.collider.GetComponent<Bug>();
+                    foreach (var bot in selected) {
+                        bot.target = bug;
+                    }
+
+                }
+            }
+
+            // check just to move somewhere
+            if (!didTargetABug && Physics.Raycast(ray, out hitInfo, 1000, 1 << Layers.Scalp)) {
                 foreach (var bot in selected) {
                     if (bot.OwnerClientId == id) {
                         var pos = hitInfo.point;
@@ -46,5 +58,47 @@ public class UnitControl : MonoBehaviour {
             }
         }
 
+    }
+
+    // Draws a line from "startVertex" var to the curent mouse position.
+    public Material lineMat;
+
+    float blinkTimer = 0.0f;
+
+    void OnPostRender() {
+        blinkTimer += Time.deltaTime;
+        for (int i = 0; i < selected.Count; i++) {
+            Transform t = selected[i].transform;
+            DrawColoredCircle(t, 1.0f, Color.white);
+
+            if (selected[i].target != null) {
+                var bug = selected[i].target;
+                DrawColoredCircle(bug.transform, bug.agent.radius * 1.5f * (0.8f + Mathf.Abs(Mathf.Sin(blinkTimer*4.0f)) * 0.4f), Color.red);
+            }
+        }
+
+    }
+
+    void DrawColoredCircle(Transform t, float radius, Color color) {
+        lineMat.SetPass(0);
+        GL.Begin(GL.LINES);
+        GL.Color(color);
+
+        int segments = 16;
+        Vector3 up = Vector3.up * 0.1f;
+        float u = radius * .95f;
+        for (int j = 0; j < segments; j++) {
+            float s = 2.0f * Mathf.PI / segments;
+            GL.Vertex(t.position + t.right * Mathf.Sin(j * s) * u + t.forward * Mathf.Cos(j * s) * u + up);
+            GL.Vertex(t.position + t.right * Mathf.Sin((j + 1) * s) * u + t.forward * Mathf.Cos((j + 1) * s) * u + up);
+        }
+        float v = radius * 1.0f;
+        for (int j = 0; j < segments; j++) {
+            float s = 2.0f * Mathf.PI / segments;
+            GL.Vertex(t.position + t.right * Mathf.Sin(j * s) * v + t.forward * Mathf.Cos(j * s) * v + up);
+            GL.Vertex(t.position + t.right * Mathf.Sin((j + 1) * s) * v + t.forward * Mathf.Cos((j + 1) * s) * v + up);
+        }
+
+        GL.End();
     }
 }
