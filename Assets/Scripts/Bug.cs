@@ -14,12 +14,14 @@ public class Bug : Unit {
 
     State state;
 
-    Coroutine currentRoutine = null; // tracks the currently active routine, incase needs to be interrupted
+    Coroutine idleRoutine = null; // tracks the currently active routine, incase needs to be interrupted
 
     public float wanderSpeed = 2.5f;
     public float wanderAnimPlayrate = 1.0f;
     public float chaseSpeed = 3.5f;
     public float chaseAnimPlayrate = 1.5f;
+    public float attackDmg = 1.0f;
+    public float attackCd = 2.0f;
 
     // Start is called before the first frame update
     protected override void Start() {
@@ -32,8 +34,8 @@ public class Bug : Unit {
         }
 
         state = State.IDLE;
-        currentRoutine = StartCoroutine(WanderRoutine());
-
+        idleRoutine = StartCoroutine(WanderRoutine());
+        StartCoroutine(SearchForBots()); // always think bout doin this
     }
 
     Vector3 targetUp = Vector3.up;
@@ -52,17 +54,21 @@ public class Bug : Unit {
             return;
         }
 
-        agent.speed = state == State.CHASE ? chaseSpeed : wanderSpeed;
-        // set animations
-        anim.speed = state == State.CHASE ? chaseAnimPlayrate : wanderAnimPlayrate;
-        anim.SetBool("Walk Forward", agent.velocity.magnitude > 0.1f);
-
-        // check if recently attacked, put in chase mode if so
+        if (state == State.CHASE) {
+            agent.speed = chaseSpeed;
+            anim.speed = chaseAnimPlayrate;
+            anim.SetBool("Run Forward", agent.velocity.magnitude > 0.1f);
+        } else {
+            agent.speed = wanderSpeed;
+            anim.speed = wanderAnimPlayrate;
+            anim.SetBool("Walk Forward", agent.velocity.magnitude > 0.1f);
+        }
 
         if (health <= 0.0f) {
-            if (currentRoutine != null) {
-                StopCoroutine(currentRoutine);
-            }
+            StopAllCoroutines();
+            //if (idleRoutine != null) {
+            //    StopCoroutine(idleRoutine);
+            //}
             if (!dying) {
                 dying = true;
                 StartCoroutine(DeathRoutine());
@@ -71,20 +77,66 @@ public class Bug : Unit {
 
     }
 
-    public bool dying = false;
-    IEnumerator DeathRoutine() {
-        anim.speed = 1.0f;
-        anim.SetTrigger("Die");
-        Destroy(agent);
-        float t = 0.0f;
-        Vector3 startPos = transform.position;
-        yield return new WaitForSeconds(3.0f);
-        while (t < 1.0f) {
-            t += Time.deltaTime * 0.05f;
-            transform.position = startPos - Vector3.up * 2.0f * t;
+    // chase routine ideas
+    // anim change is happening above right?
+    // chase target updating destination
+    // if close enough attack on cooldown
+    // if target dies or something revert to idle / wander
+
+    IEnumerator SearchForBots() {
+        float searchTimer = 0.0f;
+        // wait until we get there
+        while (true) {
+            searchTimer -= Time.deltaTime;
+            if (searchTimer < 0.0f) {
+                searchTimer = 1.0f;
+
+                var bot = LookForBot();
+                if (bot != null) {
+                    if (idleRoutine != null) {
+                        StopCoroutine(idleRoutine);
+                    }
+                    yield return StartCoroutine(ChaseRoutine(bot));
+                }
+            }
+
             yield return null;
         }
-        NetworkObject.Despawn();
+    }
+
+    IEnumerator ChaseRoutine(Collider bot) {
+        var nbot = bot.GetComponentInParent<NanoBot>();
+        state = State.CHASE;
+
+        float acd = 0.0f;
+        while (nbot != null && nbot.agent != null) {
+            agent.destination = nbot.transform.position;
+            acd -= Time.deltaTime;
+            if ((transform.position - nbot.transform.position).magnitude <= agent.stoppingDistance + 0.25f) {
+                agent.isStopped = true;
+                Vector3 v = nbot.transform.position;
+                v.y = transform.position.y;
+                transform.LookAt(Vector3.Lerp(transform.position + transform.forward, v, Time.deltaTime * 2.0f));
+                if (acd < 0.0f) {
+                    nbot.health -= attackDmg;
+                    if(nbot.health <= 0.0f) {
+                        bot.gameObject.layer = 0;
+                        nbot.gameObject.layer = 0;
+                    }
+                    anim.SetTrigger("Smash Attack");
+                    acd = attackCd;
+                }
+            } else {
+                agent.isStopped = false;
+                if (acd < -10.0f) {
+                    idleRoutine = StartCoroutine(WanderRoutine());
+                    yield return new WaitForSeconds(5.0f); // wander for a bit before deciding to attack again
+                    yield break; // deagro
+                }
+            }
+            yield return null;
+        }
+        idleRoutine = StartCoroutine(WanderRoutine());
     }
 
     void RotateToGround() {
@@ -109,6 +161,8 @@ public class Bug : Unit {
     }
 
     IEnumerator WanderRoutine() {
+        agent.isStopped= false;
+        state = State.WANDER;
         while (true) {
             // wait idly
             //Debug.Log("Idle");
@@ -135,7 +189,7 @@ public class Bug : Unit {
                 if (lookForHairTimer < 0.0f) {
                     var hair = LookForHair();
                     if (hair != null) {
-                        currentRoutine = StartCoroutine(EatHairRoutine(hair));
+                        idleRoutine = StartCoroutine(EatHairRoutine(hair));
                         yield break; // exit this coroutine
                     }
                     lookForHairTimer = 1.0f;
@@ -162,6 +216,30 @@ public class Bug : Unit {
                 }
             }
             return colliders[closestIndex];
+        }
+        return null;
+    }
+
+    Collider LookForBot() {
+        int count = Physics.OverlapSphereNonAlloc(transform.position, 8.0f, colliders, 1 << Layers.Unit);
+        if (count > 0) {
+            bool foundBot = false;
+            float closestDist = float.MaxValue;
+            int closestIndex = 0;
+            for (int i = 0; i < count; i++) {
+                if (colliders[i].CompareTag(Tags.NanoBot)) {
+                    foundBot = true;
+                    var pos = colliders[i].transform.position;
+                    float dist = (transform.position - pos).sqrMagnitude;
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestIndex = i;
+                    }
+                }
+            }
+            if (foundBot) {
+                return colliders[closestIndex];
+            }
         }
         return null;
     }
@@ -204,13 +282,8 @@ public class Bug : Unit {
             }
         }
 
-        currentRoutine = StartCoroutine(WanderRoutine());
+        idleRoutine = StartCoroutine(WanderRoutine());
     }
 
-    // chase routine ideas
-    // anim change is happening above right?
-    // chase target updating destination
-    // if close enough attack on cooldown
-    // if target dies or something revert to idle / wander
 
 }

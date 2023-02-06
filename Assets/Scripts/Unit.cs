@@ -10,7 +10,7 @@ public class Unit : NetworkBehaviour {
 
     public float health; // network variable?
 
-    public string enemyTag;
+    public string enemyTag; // not used currently
 
     public static Collider[] colliders = new Collider[32];
     public static RaycastHit[] hits = new RaycastHit[32];
@@ -46,6 +46,22 @@ public class Unit : NetworkBehaviour {
             return;
         }
 
+    }
+
+    public bool dying = false;
+    protected IEnumerator DeathRoutine() {
+        anim.speed = 1.0f;
+        anim.SetTrigger("Die");
+        Destroy(agent);
+        float t = 0.0f;
+        Vector3 startPos = transform.position;
+        yield return new WaitForSeconds(3.0f);
+        while (t < 1.0f) {
+            t += Time.deltaTime * 0.05f;
+            transform.position = startPos - Vector3.up * 2.0f * t;
+            yield return null;
+        }
+        NetworkObject.Despawn();
     }
 
     void FindEnemy() {

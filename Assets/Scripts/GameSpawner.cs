@@ -16,23 +16,23 @@ public class GameSpawner : NetworkBehaviour {
             return;
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 50; i++) {
             SpawnBug();
         }
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 30; i++) {
             SpawnBotForEachPlayer();
         }
     }
 
     void SpawnBug() {
         var prefab = Random.value < 0.5f ? bugPrefab : babyBugPrefab;
-        var bug = SpawnPrefab(prefab, 40.0f);
+        var bug = SpawnPrefab(prefab, 20.0f);
         bug.GetComponent<NetworkObject>().Spawn();
     }
 
     void SpawnBotForEachPlayer() {
         foreach (var client in NetworkManager.Singleton.ConnectedClients.Values) {
-            var go = SpawnPrefab(nanoBotPrefab, 10.0f);
+            var go = SpawnPrefab(nanoBotPrefab, 50.0f);
             var bot = go.GetComponent<NanoBot>();
             var color = BuckNet.clientColors[client.ClientId];
             bot.SetColor_ClientRpc(color);

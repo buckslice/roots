@@ -84,6 +84,12 @@ public class UnitControl : MonoBehaviour {
     void OnPostRender() {
         blinkTimer += Time.deltaTime;
         for (int i = 0; i < selected.Count; i++) {
+            if (selected[i] == null) {
+                selected.RemoveAt(i);
+                i--;
+                continue;
+            }
+
             Transform t = selected[i].transform;
             DrawColoredCircle(t, 1.0f, Color.white);
 

@@ -53,12 +53,23 @@ public class NanoBot : Unit {
     }
 
     protected override void Update() {
-
-        if (!IsServer) {
+        base.Update();
+        if (!IsServer || dying) {
             return;
         }
 
         anim.SetBool("Moving", agent.velocity.magnitude > 0.1f);
+
+        if (health <= 0.0f) {
+            StopAllCoroutines();
+            //if (idleRoutine != null) {
+            //    StopCoroutine(idleRoutine);
+            //}
+            if (!dying) {
+                dying = true;
+                StartCoroutine(DeathRoutine());
+            }
+        }
     }
 
     IEnumerator ChaseAndDestroy() {

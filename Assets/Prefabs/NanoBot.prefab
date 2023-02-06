@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: -2739154832255366665}
-  health: 100
+  health: 5
   enemyTag: Bug
   targetBug: {fileID: 0}
   gunEffect: {fileID: 161287533911882210, guid: 78a4f764198f5824b883b56472185fee, type: 3}

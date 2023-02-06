@@ -93,12 +93,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
-  health: 30
+  health: 29
   enemyTag: NanoBot
   wanderSpeed: 2.5
   wanderAnimPlayrate: 1
   chaseSpeed: 3.5
   chaseAnimPlayrate: 1.5
+  attackDmg: 1
+  attackCd: 2.5
+  dying: 0
 --- !u!195 &3935503632737682289
 NavMeshAgent:
   m_ObjectHideFlags: 0
