@@ -12,6 +12,8 @@ public class NanoBot : Unit {
     public Bug targetBug;
     float range = 8.0f;
 
+    public GameObject gunEffect;
+
     // Start is called before the first frame update
     protected override void Awake() {
         base.Awake();
@@ -40,6 +42,14 @@ public class NanoBot : Unit {
     public void Shoot_ClientRpc(Vector3 target) {
         anim.SetTrigger("Shoot");
         // spawn particles
+        Vector3 diff = (target - transform.position);
+        float dist = diff.magnitude;
+        var go = Instantiate(gunEffect, Vector3.zero, Quaternion.identity);
+        go.transform.position = transform.position;
+        go.transform.forward = diff.normalized;
+        go.transform.position = go.transform.position + go.transform.forward * dist / 2.0f + transform.forward + Vector3.up * .5f;
+        go.transform.localScale = new Vector3(1, 1, dist);
+        Destroy(go, 2.0f);
     }
 
     protected override void Update() {
@@ -70,7 +80,7 @@ public class NanoBot : Unit {
                     transform.LookAt(Vector3.Lerp(transform.position + transform.forward, v, Time.deltaTime * 2.0f));
                     // shoot
                     shootTimer -= Time.deltaTime;
-                    if(shootTimer <= 0.0f && !targetBug.dying) {
+                    if (shootTimer <= 0.0f && !targetBug.dying) {
                         targetBug.health -= 5.0f;
                         // notify clients
                         Shoot_ClientRpc(targetBug.transform.position);
